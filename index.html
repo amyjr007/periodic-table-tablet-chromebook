@@ -510,7 +510,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#f2e4c4;background-i
 </head>
 <body>
 
-<div id="app-version">v133t</div>
+<div id="app-version">v134t</div>
 
 <div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#2d1e0e;flex-direction:column;align-items:center;justify-content:center;gap:2vh;font-family:'Fredoka',sans-serif;color:#f2e4c4;text-align:center;padding:4vw;">
   <div style="font-size:clamp(48px,12vw,96px);animation:rotateHint 2s ease-in-out infinite;">📱</div>
@@ -2061,6 +2061,10 @@ function s1QuizDisableClicks(){
   if(s1QuizClickHandler&&a1){a1.removeEventListener('click',s1QuizClickHandler);s1QuizClickHandler=null;}
   if(a1)a1.querySelectorAll('.el').forEach(function(el){el.style.pointerEvents='none';el.style.cursor='';});
 }
+function quizQFont(){ // tamanho da fonte = 1ª pergunta do quiz do slide 1 (usado por todos os quizzes)
+  var cH=(typeof L1!=='undefined'&&L1&&L1.cH)?L1.cH:30;
+  return Math.round((Math.min(cH*0.6,18)-3)*1.56);
+}
 function s1QuizShowQuestion(text,qCol,fsMul){
   s1QuizRemoveQuestion();if(!L1)return;
   var q=document.createElement('div');q.className='s1-quiz-q';
@@ -3125,7 +3129,7 @@ function startQuizMode(){
   a2.querySelectorAll('.axlbl').forEach(function(lb){lb.classList.add('quiz-btn');lb.classList.remove('quiz-sel','quiz-correct','quiz-wrong');});
   qwait.style.display='none';qloc.style.display='none';
   qpquiz.style.display='flex';
-  qpfb.textContent='Qual é o período e o grupo desse elemento?';qpfb.className='qp-qfb';
+  qpfb.textContent='Qual é o período e o grupo desse elemento?';qpfb.className='qp-qfb';qpfb.style.fontSize=quizQFont()+'px';
   qpnext.style.display='none';
 }
 function renderQuizSymCard(){
@@ -4315,7 +4319,7 @@ function s4QuizShowStep(step){
   var qEl=document.createElement('div');qEl.className='s4-quiz-q';
   qEl.textContent=(step+1)+'. '+q.q;
   var qLeft=Math.round(L4.pX+L4.cW*3);
-  qEl.style.cssText='position:absolute;top:'+Math.round(L4.cH*1.5)+'px;left:'+qLeft+'px;transform:none;font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(14px,2.4vh,22px);color:#2d1e0e;background:rgba(255,250,240,.97);border:2px solid rgba(140,80,20,.32);padding:.55vh 2vw;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .35s;text-align:left;white-space:nowrap;max-width:calc(100% - '+qLeft+'px - 8px);overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 12px rgba(80,40,0,.18);';
+  qEl.style.cssText='position:absolute;top:'+Math.round(L4.cH*1.5)+'px;left:'+qLeft+'px;transform:none;font-family:Fredoka,sans-serif;font-weight:700;font-size:'+quizQFont()+'px;color:#2d1e0e;background:rgba(255,250,240,.97);border:2px solid rgba(140,80,20,.32);padding:.55vh 2vw;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .35s;text-align:left;white-space:nowrap;max-width:calc(100% - '+qLeft+'px - 8px);overflow:hidden;text-overflow:ellipsis;box-shadow:0 3px 12px rgba(80,40,0,.18);';
   a4.appendChild(qEl);s4QuizQuestionEl=qEl;
   requestAnimationFrame(function(){requestAnimationFrame(function(){if(s4QuizQuestionEl===qEl)qEl.style.opacity='1';});});
   if(p4Raised!==null)snapDown(p4Raised,false);
@@ -5195,7 +5199,7 @@ function s5ShowExercisePrompt(txt){
   s5ClearExercisePrompt();
   var a5=document.getElementById('a5');if(!a5||!L5)return;
   var loc=document.createElement('div');loc.className='s5-quiz-prompt';loc.textContent=txt;
-  loc.style.cssText='position:absolute;left:'+(L5.pX+7*L5.cW)+'px;top:'+(L5.pY+1.5*L5.cH)+'px;transform:translate(-50%,-50%) scale(.1) rotate(-20deg);opacity:0;font-family:Fredoka,sans-serif;font-weight:600;font-size:clamp(16px,2.8vh,28px);color:#2d1e0e;background:rgba(255,250,240,.94);border:1px solid rgba(140,80,20,.30);padding:.6vh 1.4vw;white-space:nowrap;z-index:55;pointer-events:none;box-shadow:0 2px 8px rgba(80,40,0,.15);border-radius:10px;';
+  loc.style.cssText='position:absolute;left:'+(L5.pX+7*L5.cW)+'px;top:'+(L5.pY+1.5*L5.cH)+'px;transform:translate(-50%,-50%) scale(.1) rotate(-20deg);opacity:0;font-family:Fredoka,sans-serif;font-weight:600;font-size:'+quizQFont()+'px;color:#2d1e0e;background:rgba(255,250,240,.94);border:1px solid rgba(140,80,20,.30);padding:.6vh 1.4vw;white-space:nowrap;z-index:55;pointer-events:none;box-shadow:0 2px 8px rgba(80,40,0,.15);border-radius:10px;';
   a5.appendChild(loc);
   s5PromptEl=loc;
   try{loc.animate([
@@ -6408,7 +6412,7 @@ function s6QuizShowStep(step){
   if(s6QuizQuestionEl&&s6QuizQuestionEl.parentNode)s6QuizQuestionEl.parentNode.removeChild(s6QuizQuestionEl);
   var qEl=document.createElement('div');qEl.className='s6-quiz-q';
   qEl.textContent=(step+1)+'. '+q.q;
-  qEl.style.cssText='position:absolute;top:6.5vh;left:50%;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(14px,2.2vh,20px);color:#2d1e0e;background:rgba(255,250,240,.97);border:2px solid rgba(140,80,20,.32);padding:.5vh 1.8vw;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .35s;text-align:center;white-space:nowrap;box-shadow:0 3px 12px rgba(80,40,0,.18);';
+  qEl.style.cssText='position:absolute;top:6.5vh;left:50%;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:700;font-size:'+quizQFont()+'px;color:#2d1e0e;background:rgba(255,250,240,.97);border:2px solid rgba(140,80,20,.32);padding:.5vh 1.8vw;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .35s;text-align:center;white-space:nowrap;box-shadow:0 3px 12px rgba(80,40,0,.18);';
   a6.appendChild(qEl);s6QuizQuestionEl=qEl;
   requestAnimationFrame(function(){requestAnimationFrame(function(){if(s6QuizQuestionEl===qEl)qEl.style.opacity='1';});});
 }
@@ -7818,7 +7822,7 @@ function s7nShowQuizPrompt(text){
   var a=document.getElementById('a7n');if(!a)return;
   var existing=a.querySelector('.s7n-quiz-prompt');if(existing){if(existing.parentNode)existing.parentNode.removeChild(existing);}
   var t=document.createElement('div');t.className='s7n-quiz-prompt';t.textContent=text;
-  t.style.cssText='position:absolute;left:50%;top:1.5vh;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:600;font-size:clamp(14px,2.2vh,20px);color:#2d1e0e;background:rgba(255,250,240,.96);padding:.55vh 1.6vw;border-radius:999px;z-index:45;pointer-events:none;opacity:0;transition:opacity .5s ease;box-shadow:0 2px 10px rgba(80,40,0,.22);max-width:80%;text-align:center;';
+  t.style.cssText='position:absolute;left:50%;top:1.5vh;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:600;font-size:'+quizQFont()+'px;color:#2d1e0e;background:rgba(255,250,240,.96);padding:.55vh 1.6vw;border-radius:999px;z-index:45;pointer-events:none;opacity:0;transition:opacity .5s ease;box-shadow:0 2px 10px rgba(80,40,0,.22);max-width:80%;text-align:center;';
   a.appendChild(t);
   requestAnimationFrame(function(){requestAnimationFrame(function(){t.style.opacity='1';});});
 }
@@ -9301,7 +9305,7 @@ function s8ShowQuizPrompt(text){
   var a=document.getElementById('a8');if(!a)return;
   s8HideQuizPrompt();
   var t=document.createElement('div');t.className='s8-quiz-prompt';t.textContent=text;
-  t.style.cssText='position:absolute;left:50%;top:1.5vh;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:600;font-size:clamp(14px,2.2vh,20px);color:#2d1e0e;background:rgba(255,250,240,.96);padding:.7vh 1.8vw;border-radius:999px;z-index:45;pointer-events:none;opacity:0;transition:opacity .5s ease;box-shadow:0 2px 10px rgba(80,40,0,.22);max-width:84%;text-align:center;';
+  t.style.cssText='position:absolute;left:50%;top:1.5vh;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:600;font-size:'+quizQFont()+'px;color:#2d1e0e;background:rgba(255,250,240,.96);padding:.7vh 1.8vw;border-radius:999px;z-index:45;pointer-events:none;opacity:0;transition:opacity .5s ease;box-shadow:0 2px 10px rgba(80,40,0,.22);max-width:84%;text-align:center;';
   a.appendChild(t);
   requestAnimationFrame(function(){requestAnimationFrame(function(){t.style.opacity='1';});});
 }
@@ -9760,7 +9764,7 @@ function s9ExReset(){
 function s9ExShowQuestion(html){
   var a9=document.getElementById('a9');if(!a9||!s9L)return;
   a9.querySelectorAll('.s9-ex-q').forEach(function(el){if(el.parentNode)el.parentNode.removeChild(el);});
-  var L=s9L,fs=Math.round(Math.min(L.cH*0.48,15)*1.3*(s9ExSet===0?1.3:1));
+  var L=s9L,fs=quizQFont();
   var tp3=tPos(3,1,L);
   var div=document.createElement('div');div.className='s9-ex-q';
   div.style.cssText='position:absolute;z-index:25;pointer-events:none;opacity:0;transition:opacity .4s ease;'
