@@ -510,7 +510,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#f2e4c4;background-i
 </head>
 <body>
 
-<div id="app-version">v128t</div>
+<div id="app-version">v129t</div>
 
 <div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#2d1e0e;flex-direction:column;align-items:center;justify-content:center;gap:2vh;font-family:'Fredoka',sans-serif;color:#f2e4c4;text-align:center;padding:4vw;">
   <div style="font-size:clamp(48px,12vw,96px);animation:rotateHint 2s ease-in-out infinite;">📱</div>
@@ -869,52 +869,31 @@ function applyBtnSystem(btn,action){
   }
   btn._updateIcon=updateIcon;
   setInterval(function(){if(btn.offsetParent!==null)updateIcon();},250);
-  var pressTimer=null,holdStart=null,holdRAF=null;
-  function startHold(){
-    holdStart=Date.now();
-    var ring=btn.querySelector('.btn-ring-progress');if(!ring)return;
-    ring.style.transition='none';
-    function raf(){
-      if(holdStart===null){holdRAF=null;return;}
-      var p=Math.min(1,(Date.now()-holdStart)/1000);
-      ring.setAttribute('stroke-dashoffset',((1-p)*BTN_RING_C).toFixed(2));
-      if(p<1){holdRAF=requestAnimationFrame(raf);}else{holdRAF=null;}
-    }
-    holdRAF=requestAnimationFrame(raf);
+  // anel marca o progresso do áudio do tópico (sem hold-to-skip)
+  if(!btn._ringLoop){
+    btn._ringLoop=true;
+    (function loop(){
+      if(!btn.isConnected){btn._ringLoop=false;return;}
+      if(btn.offsetParent!==null){
+        var ring=btn.querySelector('.btn-ring-progress');
+        if(ring){
+          var au=getPlayingTopicAudio()||getPausedTopicAudio();
+          var p=(au&&isFinite(au.duration)&&au.duration>0)?Math.min(1,au.currentTime/au.duration):0;
+          ring.style.transition='none';
+          ring.setAttribute('stroke-dashoffset',((1-p)*BTN_RING_C).toFixed(2));
+        }
+      }
+      requestAnimationFrame(loop);
+    })();
   }
-  function stopHold(){
-    holdStart=null;
-    if(holdRAF){cancelAnimationFrame(holdRAF);holdRAF=null;}
-    var ring=btn.querySelector('.btn-ring-progress');
-    if(ring){ring.style.transition='stroke-dashoffset .25s ease-out';ring.setAttribute('stroke-dashoffset',BTN_RING_C.toFixed(2));}
-  }
-  function blink(){
-    var orig=btn.style.background;
-    btn.style.transition='background .12s ease';
-    btn.style.background='rgba(255,255,255,.96)';
-    setTimeout(function(){btn.style.background=orig;setTimeout(function(){btn.style.transition='';},150);},150);
-  }
-  btn.addEventListener('pointerdown',function(e){
-    if(e.cancelable)e.preventDefault();
-    startHold();
-    pressTimer=setTimeout(function(){
-      pressTimer=null;blink();
-      if(typeof btn._btnAction==='function')btn._btnAction();
-    },1000);
+  btn.addEventListener('pointerdown',function(e){if(e.cancelable)e.preventDefault();});
+  btn.addEventListener('pointerup',function(){ // toque = play/pause ou avança (sem pular eventos)
+    var playing=getPlayingTopicAudio();
+    if(playing){playing.pause();updateIcon();return;}
+    var paused=getPausedTopicAudio();
+    if(paused){paused.play().catch(function(){});updateIcon();return;}
+    if(typeof btn._btnAction==='function')btn._btnAction();
   });
-  btn.addEventListener('pointerup',function(){
-    stopHold();
-    if(pressTimer){
-      clearTimeout(pressTimer);pressTimer=null;
-      var playing=getPlayingTopicAudio();
-      if(playing){playing.pause();updateIcon();return;}
-      var paused=getPausedTopicAudio();
-      if(paused){paused.play().catch(function(){});updateIcon();return;}
-      if(typeof btn._btnAction==='function')btn._btnAction();
-    }
-  });
-  btn.addEventListener('pointercancel',function(){stopHold();if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}});
-  btn.addEventListener('pointerleave',function(){stopHold();if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}});
   requestAnimationFrame(function(){if(typeof s1DockBtn==='function')s1DockBtn(btn);});
 }
 function applyBackBtn(btn,action){
@@ -6050,9 +6029,20 @@ function s6StartRing(audio){
   audio.addEventListener('pause',update);
   audio.addEventListener('ended',update);
   s6UpdateBtnIcon(s6NextBtn);
+  (function loop(){ // anel marca o progresso do áudio
+    var ring=s6NextBtn&&s6NextBtn.querySelector('.s6-ring-progress');
+    if(ring){
+      var p=(audio&&isFinite(audio.duration)&&audio.duration>0)?Math.min(1,audio.currentTime/audio.duration):0;
+      ring.style.transition='none';
+      ring.setAttribute('stroke-dashoffset',((1-p)*S6_RING_C).toFixed(2));
+    }
+    s6RingRAF=requestAnimationFrame(loop);
+  })();
 }
 function s6StopRing(){
   if(s6RingRAF){cancelAnimationFrame(s6RingRAF);s6RingRAF=null;}
+  var ring=s6NextBtn&&s6NextBtn.querySelector('.s6-ring-progress');
+  if(ring){ring.style.transition='none';ring.setAttribute('stroke-dashoffset',S6_RING_C.toFixed(2));}
   s6UpdateBtnIcon(s6NextBtn);
 }
 var s6HoldStart=null;
@@ -7302,18 +7292,8 @@ function buildPage6(){
   s6NextBtn=document.createElement('button');s6NextBtn.className='startbtn';
   s6NextBtn.style.cssText='left:auto;right:1.4vw;bottom:'+s6BtnBottom+';top:auto;transform:none;width:clamp(64.8px,10.8vh,97.2px);height:clamp(64.8px,10.8vh,97.2px);background:'+S6_PLAY_BG+';border-color:rgba(255,255,255,.32);color:#fff;overflow:visible;';
   s6NextBtn.innerHTML=btnInner;
-  s6NextBtn.addEventListener('pointerdown',function(e){
-    if(e.cancelable)e.preventDefault();
-    s6PressedLong=false;
-    s6StartHoldVisual();
-    s6PressTimer=setTimeout(function(){s6PressedLong=true;s6PressTimer=null;s6OnLongPress();},1000);
-  });
-  s6NextBtn.addEventListener('pointerup',function(){
-    s6StopHoldVisual();
-    if(s6PressTimer){clearTimeout(s6PressTimer);s6PressTimer=null;s6OnTap();}
-  });
-  s6NextBtn.addEventListener('pointercancel',function(){s6StopHoldVisual();if(s6PressTimer){clearTimeout(s6PressTimer);s6PressTimer=null;}});
-  s6NextBtn.addEventListener('pointerleave',function(){s6StopHoldVisual();if(s6PressTimer){clearTimeout(s6PressTimer);s6PressTimer=null;}});
+  s6NextBtn.addEventListener('pointerdown',function(e){if(e.cancelable)e.preventDefault();});
+  s6NextBtn.addEventListener('pointerup',function(){s6OnTap();}); // toque = play/pause ou avança (sem pular eventos)
   a6.appendChild(s6NextBtn);
   var s6BackBtn=document.createElement('button');s6BackBtn.className='backbtn';
   applyBackBtn(s6BackBtn,s6BackHandler);
