@@ -510,7 +510,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#f2e4c4;background-i
 </head>
 <body>
 
-<div id="app-version">v130t</div>
+<div id="app-version">v131t</div>
 
 <div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#2d1e0e;flex-direction:column;align-items:center;justify-content:center;gap:2vh;font-family:'Fredoka',sans-serif;color:#f2e4c4;text-align:center;padding:4vw;">
   <div style="font-size:clamp(48px,12vw,96px);animation:rotateHint 2s ease-in-out infinite;">📱</div>
@@ -875,7 +875,7 @@ function applyBtnSystem(btn,action){
     (function loop(){
       var ring=btn.querySelector('.btn-ring-progress');
       if(ring){
-        var au=getPlayingTopicAudio()||getPausedTopicAudio();
+        var au=(typeof btn._ringAudio==='function'&&btn._ringAudio())||getPlayingTopicAudio()||getPausedTopicAudio();
         var p=(au&&isFinite(au.duration)&&au.duration>0)?Math.min(1,au.currentTime/au.duration):0;
         ring.style.transition='none';
         ring.setAttribute('stroke-dashoffset',((1-p)*BTN_RING_C).toFixed(2));
@@ -12887,10 +12887,11 @@ function s0Init(){
     origBtn.style.zIndex='201';
     origBtn.classList.add('show');
     var pau=document.createElement('div');pau.className='s0-pause-icon';
-    pau.style.cssText='display:none;position:absolute;inset:0;border-radius:50%;background:rgba(90,90,90,.92);align-items:center;justify-content:center;font-size:clamp(20px,3.4vh,32px);color:#ddd;pointer-events:none;z-index:5;';
+    pau.style.cssText='display:none;position:absolute;inset:14%;border-radius:50%;background:rgba(90,90,90,.92);align-items:center;justify-content:center;font-size:clamp(20px,3.4vh,32px);color:#ddd;pointer-events:none;z-index:5;';
     pau.textContent='⏸';origBtn.appendChild(pau);
     // botão já tem applyBtnSystem (linha 895) — só troca a ação para não duplicar listeners
     origBtn._btnAction=function(){s0HandlePlay();};
+    origBtn._ringAudio=function(){return (typeof s0Audio!=='undefined'&&s0Audio&&!s0Audio.ended)?s0Audio:null;}; // anel marca o tempo do dialogo0
     s0Ov._btn=origBtn;
   }
   s0BtnState('ready');
