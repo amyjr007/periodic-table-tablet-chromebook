@@ -510,7 +510,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#f2e4c4;background-i
 </head>
 <body>
 
-<div id="app-version">v132t</div>
+<div id="app-version">v133t</div>
 
 <div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#2d1e0e;flex-direction:column;align-items:center;justify-content:center;gap:2vh;font-family:'Fredoka',sans-serif;color:#f2e4c4;text-align:center;padding:4vw;">
   <div style="font-size:clamp(48px,12vw,96px);animation:rotateHint 2s ease-in-out infinite;">📱</div>
@@ -4106,7 +4106,7 @@ function mkPH4(w){
 }
 function s4JumpToStart(){stopS4Audio();if(s4StartBtn)s4StartBtn.classList.add('show');}
 function s4JumpToFamilias(){s4SkipToFamilies();}
-function s4JumpToQuiz(){stopS4Audio();setS4Interactive(false);s4EnterRevealMode();s4StartQuiz();}
+function s4JumpToQuiz(){stopS4Audio();setS4Interactive(false);s4EnterRevealMode();NAMED_GROUPS.forEach(function(g){s4RestoreNamedFamily(g);});s4RevealMode=false;s4StartQuiz();} // deixa a tabela como se tivesse passado por todos os eventos
 function buildPage4(){
   stopS4Audio();
   a4.innerHTML='';p4Els=[];p4FamEls={};p4Labels={};p4Raised=null;p4Strips={};s4NextTopicBtn=null;
