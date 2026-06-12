@@ -1,4 +1,4 @@
-const CACHE = 'tabela-periodica-v136t';
+const CACHE = 'tabela-periodica-v137t';
 
 self.addEventListener('install', e => {
   e.waitUntil(
