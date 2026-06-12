@@ -510,7 +510,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#f2e4c4;background-i
 </head>
 <body>
 
-<div id="app-version">v139t</div>
+<div id="app-version">v140t</div>
 
 <div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#2d1e0e;flex-direction:column;align-items:center;justify-content:center;gap:2vh;font-family:'Fredoka',sans-serif;color:#f2e4c4;text-align:center;padding:4vw;">
   <div style="font-size:clamp(48px,12vw,96px);animation:rotateHint 2s ease-in-out infinite;">📱</div>
@@ -5942,6 +5942,7 @@ var s6Audio=null,s6NextBtn=null,s6StartBtn=null,s6Timers=[],s6Col3=null,s6NextHa
 var s6EverDealt={lanth:false,act:false},s6Dialog62Played=false;
 var s6Events=[],s6PressTimer=null,s6PressedLong=false,s6RingRAF=null;
 var s6QuizActive=false,s6QuizStep=0,s6QuizScore=10,s6QuizErrors=0,s6QuizBusy=false,s6QuizQuestionEl=null,s6QuizScoreCard=null,s6QuizBtn=null,s6NextTopicBtn=null,s6QuizClickEls=[];
+var s6QuizQWrongs=0,s6QuizCorrectCount=0,s6QuizHintBtn=null,s6QuizHintTextEl=null,s6QuizExplainEl=null;
 var S6_RING_R=46,S6_RING_C=2*Math.PI*46;
 var s6Timeline=null;
 function s6BindTimeline(audio){
@@ -6354,11 +6355,26 @@ function s6BlockTargets(check){
   return arr;
 }
 var S6_QUIZ=[
-  {q:'Toque em um elemento de transição interna.',targets:s6BlockTargets(function(d){return d[5]==='f';}),hint:'Os elementos de transição interna são os lantanídeos e os actinídeos, nas duas linhas abaixo da tabela.'},
-  {q:'Toque no primeiro elemento da série dos lantanídeos.',targets:[57],hint:'É o Lantânio (La), número atômico 57 — o primeiro elemento da série dos lantanídeos.'},
-  {q:'Toque no último elemento da série dos actinídeos.',targets:[103],hint:'É o Laurêncio (Lr), número atômico 103 — o último elemento da série dos actinídeos.'},
-  {q:'Toque no último elemento da série dos lantanídeos.',targets:[71],hint:'É o Lutécio (Lu), número atômico 71 — o último elemento da série dos lantanídeos.'},
-  {q:'Toque em qualquer elemento representativo na tabela.',targets:s6BlockTargets(function(d){return d[5]==='s'||d[5]==='p';}),hint:'Os elementos representativos formam os blocos s e p, nas extremidades da tabela.'}
+  {q:'Toque em um elemento de transição interna.',src:'audio/dialogo6.7.1.mp3',
+   targets:s6BlockTargets(function(d){return d[5]==='f';}),
+   hint:'Os elementos de transição interna são os lantanídeos e os actinídeos, nas duas linhas abaixo da tabela.',
+   highlightZ:57,explain:'O Lantânio (La, 57) é um elemento de transição interna — faz parte dos lantanídeos, uma das duas linhas abaixo da tabela.'},
+  {q:'Toque no último elemento da série dos lantanídeos.',src:'audio/dialogo6.7.2.mp3',
+   targets:[71],hint:'A série dos lantanídeos vai do 57 ao 71. O último é o de maior número atômico.',
+   highlightZ:71,explain:'É o Lutécio (Lu, 71) — o último (maior número atômico) da série dos lantanídeos.'},
+  {q:'Toque no último elemento da série dos actinídeos.',src:'audio/dialogo6.7.3.mp3',
+   targets:[103],hint:'A série dos actinídeos vai do 89 ao 103. O último é o de maior número atômico.',
+   highlightZ:103,explain:'É o Laurêncio (Lr, 103) — o último (maior número atômico) da série dos actinídeos.'},
+  {q:'Toque em qualquer elemento de transição externa.',src:'audio/dialogo6.7.4.mp3',
+   targets:s6BlockTargets(function(d){return d[5]==='d';}),
+   hint:'A transição externa é o bloco d — os grupos 3 a 12, no centro da tabela.',
+   highlightZ:21,explain:'O Escândio (Sc, 21) é um elemento de transição externa — faz parte do bloco d (grupos 3 a 12).'},
+  {q:'Toque no elemento que inicia a série dos lantanídeos.',src:'audio/dialogo6.7.5.mp3',
+   targets:[57],hint:'A série dos lantanídeos começa no de menor número atômico, o 57.',
+   highlightZ:57,explain:'É o Lantânio (La, 57) — o primeiro elemento da série dos lantanídeos.'},
+  {q:'Toque no elemento que dá nome aos actinídeos.',src:'audio/dialogo6.7.6.mp3',
+   targets:[89],hint:'O nome "actinídeos" vem do primeiro elemento da série, o de número 89.',
+   highlightZ:89,explain:'É o Actínio (Ac, 89) — dá nome à série dos actinídeos.'}
 ];
 function s6ShowQuizButton(){
   var a6=document.getElementById('a6');if(!a6)return;
@@ -6370,7 +6386,7 @@ function s6ShowQuizButton(){
 }
 function s6StartQuiz(){
   var a6=document.getElementById('a6');if(!a6||!L6)return;
-  s6QuizActive=true;s6QuizStep=0;s6QuizScore=10;s6QuizErrors=0;s6QuizBusy=false;
+  s6QuizActive=true;s6QuizStep=0;s6QuizScore=10;s6QuizErrors=0;s6QuizBusy=false;s6QuizCorrectCount=0;s6QuizQWrongs=0;
   if(s6Audio){try{s6Audio.pause();}catch(_){}s6Audio.onended=null;s6Audio=null;}
   s6ClearTimers();s6Events=[];
   s6StopRing();
@@ -6406,8 +6422,9 @@ function s6DisableQuizClicks(){
   s6QuizClickEls=[];
 }
 function s6QuizShowStep(step){
+  s6QuizCleanupHints();
   if(step>=S6_QUIZ.length){s6QuizEnd();return;}
-  s6QuizStep=step;s6QuizBusy=false;
+  s6QuizStep=step;s6QuizBusy=false;s6QuizQWrongs=0;
   var q=S6_QUIZ[step];
   var a6=document.getElementById('a6');if(!a6)return;
   if(s6QuizQuestionEl&&s6QuizQuestionEl.parentNode)s6QuizQuestionEl.parentNode.removeChild(s6QuizQuestionEl);
@@ -6416,6 +6433,8 @@ function s6QuizShowStep(step){
   qEl.style.cssText='position:absolute;top:6.5vh;left:50%;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:700;font-size:'+quizQFont()+'px;color:#2d1e0e;background:rgba(255,250,240,.97);border:2px solid rgba(140,80,20,.32);padding:.5vh 1.8vw;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .35s;text-align:center;white-space:nowrap;box-shadow:0 3px 12px rgba(80,40,0,.18);';
   a6.appendChild(qEl);s6QuizQuestionEl=qEl;
   requestAnimationFrame(function(){requestAnimationFrame(function(){if(s6QuizQuestionEl===qEl)qEl.style.opacity='1';});});
+  // toca o áudio da pergunta (dialogo6.7.N)
+  if(q.src){if(s6Audio){try{s6Audio.pause();}catch(_){}s6Audio.onended=null;}s6Audio=new Audio(q.src);s6Audio.play().catch(function(){});}
 }
 function s6QuizElClick(d,el){
   if(!s6QuizActive||s6QuizBusy)return;
@@ -6437,6 +6456,9 @@ function s6SpawnConfettiAt(px,py){
   })(i);}
 }
 function s6QuizCorrect(el){
+  if(s6Audio){try{s6Audio.pause();}catch(_){}s6Audio.onended=null;s6Audio=null;}
+  s6QuizCleanupHints();
+  s6QuizCorrectCount++;
   el.classList.add('qz-right');
   try{new Audio('audio/funfare.mp3').play().catch(function(){});}catch(_){}
   setTimeout(function(){try{new Audio('audio/applause.mp3').play().catch(function(){});}catch(_){}},300);
@@ -6456,34 +6478,76 @@ function s6QuizWrong(el,q){
   var a6=document.getElementById('a6');
   a6.classList.add('s3-area-shake');
   setTimeout(function(){a6.classList.remove('s3-area-shake');},560);
-  s6QuizScore=Math.max(0,s6QuizScore-2);
-  s6QuizErrors++;
-  q.targets.forEach(function(z){
-    var corrEl=a6.querySelector('.el[data-z="'+z+'"]');
-    if(corrEl){corrEl.classList.add('s4-answer-glow');corrEl.style.animation='s4AnswerGlow 1s ease-in-out infinite';corrEl.style.zIndex='75';}
-  });
-  setTimeout(function(){
-    el.classList.remove('qz-wrong');
-    a6.querySelectorAll('.s4-answer-glow').forEach(function(e){e.classList.remove('s4-answer-glow');e.style.animation='';e.style.zIndex='';});
-    s6QuizShowStep(s6QuizStep+1);
-  },1800);
+  s6QuizQWrongs++;
+  setTimeout(function(){el.classList.remove('qz-wrong');},600);
+  if(s6QuizQWrongs>=3){
+    // 3º erro: revela as respostas e passa para a próxima pergunta
+    s6QuizBusy=true;
+    s6QuizRevealAnswers(q);
+    setTimeout(function(){s6QuizShowStep(s6QuizStep+1);},2200);
+    return;
+  }
+  if(s6QuizQWrongs===1)s6ShowQuizHintBtn(q);   // 1º erro: botão de dica
+  if(s6QuizQWrongs===2)s6ShowQuizExplain(q);   // 2º erro: destaca uma resposta + explicação
+  s6QuizBusy=false; // continua podendo tentar a correta
+}
+function s6QuizCleanupHints(){
+  var a6=document.getElementById('a6');
+  if(s6QuizHintBtn&&s6QuizHintBtn.parentNode)s6QuizHintBtn.parentNode.removeChild(s6QuizHintBtn);s6QuizHintBtn=null;
+  if(s6QuizHintTextEl&&s6QuizHintTextEl.parentNode)s6QuizHintTextEl.parentNode.removeChild(s6QuizHintTextEl);s6QuizHintTextEl=null;
+  if(s6QuizExplainEl&&s6QuizExplainEl.parentNode)s6QuizExplainEl.parentNode.removeChild(s6QuizExplainEl);s6QuizExplainEl=null;
+  if(a6)a6.querySelectorAll('.s4-answer-glow').forEach(function(e){e.classList.remove('s4-answer-glow');e.style.animation='';e.style.zIndex='';});
+}
+function s6ShowQuizHintBtn(q){
+  var a6=document.getElementById('a6');if(!a6)return;
+  if(s6QuizHintBtn&&s6QuizHintBtn.parentNode)s6QuizHintBtn.parentNode.removeChild(s6QuizHintBtn);
+  var btn=document.createElement('button');btn.className='s6-quiz-hintbtn';btn.textContent='💡 Dica';
+  btn.style.cssText='position:absolute;top:13vh;left:50%;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:700;font-size:clamp(12px,1.9vh,17px);background:rgba(255,240,195,.97);color:#7c2d12;border:2px solid rgba(200,120,20,.55);border-radius:999px;padding:.5vh 2.2vw;cursor:pointer;z-index:62;box-shadow:0 2px 10px rgba(80,40,0,.2);';
+  btn.addEventListener('click',function(){s6ShowQuizHintText(q);});
+  a6.appendChild(btn);s6QuizHintBtn=btn;
+}
+function s6ShowQuizHintText(q){
+  var a6=document.getElementById('a6');if(!a6)return;
+  if(s6QuizHintBtn&&s6QuizHintBtn.parentNode){s6QuizHintBtn.parentNode.removeChild(s6QuizHintBtn);s6QuizHintBtn=null;}
+  if(s6QuizHintTextEl&&s6QuizHintTextEl.parentNode)s6QuizHintTextEl.parentNode.removeChild(s6QuizHintTextEl);
+  var t=document.createElement('div');t.className='s6-quiz-hinttext';t.textContent=q.hint;
+  t.style.cssText='position:absolute;top:13vh;left:50%;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:600;font-size:clamp(11px,1.7vh,15px);color:#5c2a00;background:rgba(255,250,240,.97);border:1px solid rgba(140,80,20,.32);border-radius:10px;padding:.6vh 2vw;z-index:62;pointer-events:none;max-width:80%;text-align:center;box-shadow:0 2px 10px rgba(80,40,0,.18);';
+  a6.appendChild(t);s6QuizHintTextEl=t;
+}
+function s6ShowQuizExplain(q){
+  var a6=document.getElementById('a6');if(!a6)return;
+  if(s6QuizHintBtn&&s6QuizHintBtn.parentNode){s6QuizHintBtn.parentNode.removeChild(s6QuizHintBtn);s6QuizHintBtn=null;}
+  if(s6QuizHintTextEl&&s6QuizHintTextEl.parentNode){s6QuizHintTextEl.parentNode.removeChild(s6QuizHintTextEl);s6QuizHintTextEl=null;}
+  var hz=q.highlightZ||(q.targets&&q.targets[0]);
+  if(hz){var corrEl=a6.querySelector('.el[data-z="'+hz+'"]');if(corrEl){corrEl.classList.add('s4-answer-glow');corrEl.style.animation='s4AnswerGlow 1s ease-in-out infinite';corrEl.style.zIndex='75';}}
+  if(s6QuizExplainEl&&s6QuizExplainEl.parentNode)s6QuizExplainEl.parentNode.removeChild(s6QuizExplainEl);
+  var t=document.createElement('div');t.className='s6-quiz-explain';t.textContent=q.explain;
+  t.style.cssText='position:absolute;top:13vh;left:50%;transform:translateX(-50%);font-family:Fredoka,sans-serif;font-weight:600;font-size:clamp(11px,1.7vh,15px);color:#073a15;background:rgba(220,252,231,.97);border:1px solid rgba(22,163,74,.45);border-radius:10px;padding:.6vh 2vw;z-index:62;pointer-events:none;max-width:82%;text-align:center;box-shadow:0 2px 10px rgba(20,120,60,.18);';
+  a6.appendChild(t);s6QuizExplainEl=t;
+}
+function s6QuizRevealAnswers(q){
+  var a6=document.getElementById('a6');if(!a6)return;
+  (q.targets||[]).forEach(function(z){var e=a6.querySelector('.el[data-z="'+z+'"]');if(e){e.classList.add('s4-answer-glow');e.style.animation='s4AnswerGlow 1s ease-in-out infinite';e.style.zIndex='75';}});
 }
 function s6QuizEnd(){
   s6QuizActive=false;
+  if(s6Audio){try{s6Audio.pause();}catch(_){}s6Audio.onended=null;s6Audio=null;}
+  s6QuizCleanupHints();
   s6DisableQuizClicks();
   if(s6QuizQuestionEl&&s6QuizQuestionEl.parentNode)s6QuizQuestionEl.parentNode.removeChild(s6QuizQuestionEl);
   s6QuizQuestionEl=null;
   var a6=document.getElementById('a6');if(!a6)return;
   var t7=document.querySelector('#topnav .tcard[data-i="6"]');
   if(t7)t7.classList.remove('s2-pulse');
-  var high=s6QuizScore>=5;
+  var correct=s6QuizCorrectCount,errors=S6_QUIZ.length-correct;
+  s6QuizScore=Math.round((correct/S6_QUIZ.length)*100)/10;
+  var high=correct>=Math.ceil(S6_QUIZ.length/2);
   var hiMsgs=['Muito bem! Você entendeu as transições internas e externas!','Excelente trabalho! Continue assim!','Mandou bem nessa!'];
   var loMsgs=['Continue praticando, você vai conseguir!','Revise os lantanídeos e actinídeos e tente de novo!','Cada tentativa te deixa mais forte!'];
   var msgs=high?hiMsgs:loMsgs;
   var msg=msgs[Math.floor(Math.random()*msgs.length)];
-  var correct=S6_QUIZ.length-s6QuizErrors;
-  recordQuizResult(6,s6QuizScore,Math.max(0,correct),s6QuizErrors);
-  var card=buildQuizResultCard(a6,{score:s6QuizScore,correct:Math.max(0,correct),errors:s6QuizErrors,msg:msg,high:high,cx:Math.round(a6.offsetWidth/2),cy:Math.round(a6.offsetHeight/2),zIndex:150});
+  recordQuizResult(6,s6QuizScore,correct,errors);
+  var card=buildQuizResultCard(a6,{score:s6QuizScore,correct:correct,errors:errors,msg:msg,high:high,cx:Math.round(a6.offsetWidth/2),cy:Math.round(a6.offsetHeight/2),zIndex:150});
   s6QuizScoreCard=card;
   vib([50,30,50,30,50]);
   try{new Audio('audio/statistics.mp3').play().catch(function(){});}catch(_){}
@@ -7255,8 +7319,9 @@ function buildPage6(){
   a6.innerHTML='';
   s6LanthPH=null;s6ActPH=null;s6Dealing={lanth:false,act:false};
   s6EverDealt={lanth:false,act:false};s6Dialog62Played=false;
-  s6QuizActive=false;s6QuizStep=0;s6QuizScore=10;s6QuizErrors=0;s6QuizBusy=false;
+  s6QuizActive=false;s6QuizStep=0;s6QuizScore=10;s6QuizErrors=0;s6QuizBusy=false;s6QuizCorrectCount=0;s6QuizQWrongs=0;
   s6QuizQuestionEl=null;s6QuizScoreCard=null;s6QuizBtn=null;s6NextTopicBtn=null;s6QuizClickEls=[];
+  s6QuizHintBtn=null;s6QuizHintTextEl=null;s6QuizExplainEl=null;
   L6=cLay(a6);
   L6.cW*=0.9;L6.cH*=0.9;
   L6.pX=(L6.aW-L6.cW*18)/2;
