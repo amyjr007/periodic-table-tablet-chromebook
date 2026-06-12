@@ -510,7 +510,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#f2e4c4;background-i
 </head>
 <body>
 
-<div id="app-version">v126t</div>
+<div id="app-version">v127t</div>
 
 <div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#2d1e0e;flex-direction:column;align-items:center;justify-content:center;gap:2vh;font-family:'Fredoka',sans-serif;color:#f2e4c4;text-align:center;padding:4vw;">
   <div style="font-size:clamp(48px,12vw,96px);animation:rotateHint 2s ease-in-out infinite;">📱</div>
@@ -6727,11 +6727,21 @@ function s6StopTapHint(){
   if(s6HintTimer){clearTimeout(s6HintTimer);s6HintTimer=null;}
   if(s6HintEl){if(s6HintEl.parentNode)s6HintEl.parentNode.removeChild(s6HintEl);s6HintEl=null;}
 }
+function s6TargetRevealed(t){ // true se o placeholder (57–71 / 89–103) já foi revelado/escondido
+  if(!t)return false;
+  var type=(t===s6LanthPH)?'lanth':(t===s6ActPH)?'act':null;
+  if(!type)return false;
+  if(s6Dealing[type])return true;
+  var op=parseFloat(t.style.opacity);if(!isNaN(op)&&op<=0.01)return true;
+  var cs=(typeof getComputedStyle==='function')?getComputedStyle(t):null;
+  if(cs&&(cs.display==='none'||cs.visibility==='hidden'||parseFloat(cs.opacity)<=0.01))return true;
+  return false;
+}
 function s6StartTapHint(targets){
   s6StopTapHint();
   var a6=document.getElementById('a6');if(!a6||!L6)return;
   if(!targets||!targets.length)targets=[s6LanthPH,s6ActPH];
-  targets=targets.filter(function(t){return !!t;});
+  targets=targets.filter(function(t){return !!t&&!s6TargetRevealed(t);});
   if(!targets.length)return;
   var hint=document.createElement('div');
   hint.className='s6-tap-hint';
@@ -6749,8 +6759,9 @@ function s6StartTapHint(targets){
   var idx=0;
   function cycle(){
     if(!s6HintEl)return;
+    if(!targets.some(function(t){return !s6TargetRevealed(t);})){s6StopTapHint();return;} // todos revelados → encerra
     var target=targets[idx];
-    if(!target){idx=(idx+1)%targets.length;s6HintTimer=setTimeout(cycle,300);return;}
+    if(!target||s6TargetRevealed(target)){idx=(idx+1)%targets.length;s6HintTimer=setTimeout(cycle,150);return;}
     var aRect=a6.getBoundingClientRect();
     var tRect=target.getBoundingClientRect();
     var x=tRect.left-aRect.left+tRect.width/2;
