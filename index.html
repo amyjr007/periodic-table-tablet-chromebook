@@ -510,7 +510,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#f2e4c4;background-i
 </head>
 <body>
 
-<div id="app-version">v127t</div>
+<div id="app-version">v128t</div>
 
 <div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#2d1e0e;flex-direction:column;align-items:center;justify-content:center;gap:2vh;font-family:'Fredoka',sans-serif;color:#f2e4c4;text-align:center;padding:4vw;">
   <div style="font-size:clamp(48px,12vw,96px);animation:rotateHint 2s ease-in-out infinite;">📱</div>
@@ -6854,10 +6854,11 @@ function s6StartIntro(){
   ad.addEventListener('ended',function(){
     if(s6Audio!==ad)return;
     s6StopRing();
+    if(typeof playS6_1==='function')playS6_1(); // passa automaticamente para dialogo6.1 (sem botão)
   });
   ad.play().catch(function(){});
   s6NextHandler=playS6_1;
-  if(s6NextBtn)s6NextBtn.classList.add('show');
+  if(s6NextBtn)s6NextBtn.classList.remove('show'); // sem botão entre dialogo6 e 6.1
   s6StartRing(ad);
   s6ScheduleEvent(1000,function(){if(s6Audio!==ad)return;s6ShowGroup3Col();});
   s6ScheduleEvent(2500,function(){if(s6Audio!==ad)return;s6EmphasizeStrong(s6LanthPH);});
@@ -13431,8 +13432,39 @@ function stopAllAudio(){
   if(typeof stopS9Audio==='function')stopS9Audio();
   if(typeof qzStopResultAudios==='function')qzStopResultAudios();
 }
-document.addEventListener('visibilitychange',function(){if(document.hidden)stopAllAudio();});
-window.addEventListener('pagehide',stopAllAudio);
+// ── Pausa global ao sair do app; retoma ao apertar play (tocar) de novo ──
+(function(){
+  var cur=null,pausedByHide=null,armed=false,disarmTimer=null;
+  var _play=HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play=function(){ // rastreia o último áudio que tocou
+    cur=this;
+    if(pausedByHide&&pausedByHide!==this)pausedByHide=null; // tocou outro áudio → descarta o pausado
+    return _play.apply(this,arguments);
+  };
+  function disarm(){
+    armed=false;
+    ['pointerdown','pointerup','click'].forEach(function(t){document.removeEventListener(t,fire,true);});
+    if(disarmTimer){clearTimeout(disarmTimer);disarmTimer=null;}
+  }
+  function fire(e){ // primeiro toque após voltar: retoma o áudio e consome o gesto
+    if(pausedByHide){var a=pausedByHide;pausedByHide=null;if(a&&a.paused&&!a.ended)_play.apply(a,[]).catch(function(){});}
+    if(e.cancelable&&e.preventDefault)e.preventDefault();
+    if(e.stopImmediatePropagation)e.stopImmediatePropagation();else if(e.stopPropagation)e.stopPropagation();
+    if(e.type==='click')disarm();
+  }
+  function arm(){
+    if(armed)return;armed=true;
+    ['pointerdown','pointerup','click'].forEach(function(t){document.addEventListener(t,fire,true);});
+    disarmTimer=setTimeout(disarm,2000); // segurança: nunca bloqueia indefinidamente
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){
+      disarm();
+      if(cur&&!cur.paused&&!cur.ended){try{cur.pause();}catch(_){}pausedByHide=cur;}else pausedByHide=null;
+    }else if(pausedByHide){arm();}
+  });
+  window.addEventListener('pagehide',function(){disarm();pausedByHide=null;if(typeof stopAllAudio==='function')stopAllAudio();});
+})();
 </script>
 
 </body>
