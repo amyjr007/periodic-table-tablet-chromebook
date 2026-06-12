@@ -1,0 +1,13 @@
+# Backups
+*.v51-backup
+*-backup
+*.bak
+
+# Editor / ferramentas
+.vscode/
+.claude/
+
+# Sistema
+Thumbs.db
+Desktop.ini
+.DS_Store
