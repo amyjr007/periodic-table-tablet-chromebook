@@ -510,7 +510,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#f2e4c4;background-i
 </head>
 <body>
 
-<div id="app-version">v124t</div>
+<div id="app-version">v125t</div>
 
 <div id="rotate-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#2d1e0e;flex-direction:column;align-items:center;justify-content:center;gap:2vh;font-family:'Fredoka',sans-serif;color:#f2e4c4;text-align:center;padding:4vw;">
   <div style="font-size:clamp(48px,12vw,96px);animation:rotateHint 2s ease-in-out infinite;">📱</div>
@@ -1130,19 +1130,19 @@ tcardEls.forEach(function(d){d.addEventListener('click',function(){var i=+d.data
       +'<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="Fredoka,Arial,sans-serif" font-weight="700" font-size="7" fill="#2d1e0e" text-anchor="middle" dominant-baseline="central">'+t+'</text>';
   }
   // ── overlays por ícone ──
-  function ovV(){ // slide 2: cruz no V (23) — linha azul (período 4) + coluna branca (grupo 5)
-    return '<rect x="'+(colX(1)-0.6).toFixed(1)+'" y="'+(rowY(4)-0.6).toFixed(1)+'" width="'+(COLS*CELL-GAP+1.2).toFixed(1)+'" height="'+(SZ+1.2).toFixed(1)+'" rx="2" fill="rgba(37,99,235,.40)" stroke="rgba(37,99,235,.95)" stroke-width="1"/>'
+  function ovV(){ // slide 2: cruz no V (23) — linha branca (período 4) + coluna branca (grupo 5)
+    return '<rect x="'+(colX(1)-0.6).toFixed(1)+'" y="'+(rowY(4)-0.6).toFixed(1)+'" width="'+(COLS*CELL-GAP+1.2).toFixed(1)+'" height="'+(SZ+1.2).toFixed(1)+'" rx="2" fill="rgba(255,255,255,.5)" stroke="rgba(255,255,255,.95)" stroke-width="1"/>'
       +'<rect x="'+(colX(5)-0.6).toFixed(1)+'" y="'+(rowY(1)-0.6).toFixed(1)+'" width="'+(SZ+1.2).toFixed(1)+'" height="'+(7*CELL-GAP+1.2).toFixed(1)+'" rx="2" fill="rgba(255,255,255,.5)" stroke="rgba(255,255,255,.95)" stroke-width="1"/>';
   }
   function ovTipos(){ // slide 3: "metal" (abaixo do 24) e "ametal" (área laranja)
     return txt(cX(6),cY(5),'metal','#fff',7,{sw:1.6})+txt(cX(16),cY(2),'ametal','#fff',6.5,{sw:1.5});
   }
   function ovAlk(){ // slide 4: "Alcalinos" / "Alcalino-Terrosos" no vão acima dos elementos de transição (discreto)
-    return txt(cX(7.5),rowY(1)+2,'Alcalinos','rgba(255,255,255,.72)',5.5,{sw:0.8,stroke:'rgba(0,0,0,.4)',fw:600})
+    return txt(cX(2.5),rowY(1)+2,'Alcalinos','rgba(255,255,255,.72)',5.5,{sw:0.8,stroke:'rgba(0,0,0,.4)',fw:600})
       +txt(cX(7.5),rowY(2)+2,'Alcalino-Terrosos','rgba(255,255,255,.72)',5.5,{sw:0.8,stroke:'rgba(0,0,0,.4)',fw:600});
   }
   function ovTrans(){ // slide 5: "Elementos de transição" (bloco vermelho) e "Representativos" (bloco p)
-    return txt(cX(7.5),cY(5),'Elementos de transição','#fff',5.6,{sw:1.3})+txt(cX(15.5),cY(3),'Representativos','#fff',5.6,{sw:1.3});
+    return txt(cX(7.5),cY(5),'Transição','#fff',5.6,{sw:1.3})+txt(cX(15.5),cY(3),'Representativos','#fff',5.6,{sw:1.3});
   }
   function ovRad(){ // slide 7: símbolo radioativo em Z 83..118 (discreto)
     var u='';
@@ -1175,7 +1175,7 @@ tcardEls.forEach(function(d){d.addEventListener('click',function(){var i=+d.data
   function addPauling(){ // slide 10: imagem do Pauling discreta
     var c=document.querySelector('#topnav .tcard[data-i="9"]');if(!c||c.querySelector('.tcard-pauling'))return;
     var img=document.createElement('img');img.className='tcard-pauling';img.src='images/pauling.png';img.alt='';
-    img.style.cssText='position:absolute;right:7%;bottom:7%;width:32%;max-width:58px;opacity:.55;z-index:1;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))';
+    img.style.cssText='position:absolute;right:7%;top:50%;transform:translateY(-50%);width:32%;max-width:58px;opacity:.55;z-index:1;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))';
     c.appendChild(img);
   }
   function run(){if(typeof ALL==='undefined'||!ALL)return;apply('topnav',function(i){return schemes[i]||byBlock;},true);apply('topnav2',function(){return byBlock;});addPauling();}
